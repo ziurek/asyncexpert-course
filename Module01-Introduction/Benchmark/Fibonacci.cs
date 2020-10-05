@@ -6,6 +6,8 @@ namespace Dotnetos.AsyncExpert.Homework.Module01.Benchmark
     [DisassemblyDiagnoser(exportCombinedDisassemblyReport: true)]
     public class FibonacciCalc
     {
+        Dictionary<ulong, ulong> cache = new Dictionary<ulong, ulong>();
+
         // HOMEWORK:
         // 1. Write implementations for RecursiveWithMemoization and Iterative solutions
         // 2. Add MemoryDiagnoser to the benchmark
@@ -26,7 +28,21 @@ namespace Dotnetos.AsyncExpert.Homework.Module01.Benchmark
         [ArgumentsSource(nameof(Data))]
         public ulong RecursiveWithMemoization(ulong n)
         {
-            return 0;
+            var isCached = cache.TryGetValue(n, out var result);
+
+            if(!isCached)
+            {
+                if (n == 1 || n == 2)
+                {
+                    cache[n] = 1;
+                }
+                else
+                {
+                    cache[n] = RecursiveWithMemoization(n - 2) + RecursiveWithMemoization(n - 1);
+                }
+            }
+            
+            return cache[n];
         }
         
         [Benchmark]
