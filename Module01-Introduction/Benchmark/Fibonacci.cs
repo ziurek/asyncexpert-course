@@ -3,11 +3,10 @@ using BenchmarkDotNet.Attributes;
 
 namespace Dotnetos.AsyncExpert.Homework.Module01.Benchmark
 {
+    [MemoryDiagnoser]
     [DisassemblyDiagnoser(exportCombinedDisassemblyReport: true)]
     public class FibonacciCalc
     {
-        Dictionary<ulong, ulong> cache = new Dictionary<ulong, ulong>();
-
         // HOMEWORK:
         // 1. Write implementations for RecursiveWithMemoization and Iterative solutions
         // 2. Add MemoryDiagnoser to the benchmark
@@ -28,7 +27,8 @@ namespace Dotnetos.AsyncExpert.Homework.Module01.Benchmark
         [ArgumentsSource(nameof(Data))]
         public ulong RecursiveWithMemoization(ulong n)
         {
-            var isCached = cache.TryGetValue(n, out var result);
+            var cache = new Dictionary<ulong, ulong>();
+            var isCached = cache.TryGetValue(n, out _);
 
             if(!isCached)
             {
@@ -49,7 +49,16 @@ namespace Dotnetos.AsyncExpert.Homework.Module01.Benchmark
         [ArgumentsSource(nameof(Data))]
         public ulong Iterative(ulong n)
         {
-            return 0;
+            ulong previous = 1, twoPrevious = 1, result = 1;
+
+            for (ulong i = 3; i <= n; i++)
+            {
+                result = previous + twoPrevious;
+                twoPrevious = previous;
+                previous = result;
+            }
+
+            return result;
         }
 
         public IEnumerable<ulong> Data()
