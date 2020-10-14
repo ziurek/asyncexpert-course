@@ -11,9 +11,26 @@ namespace ThreadPoolExercises.Core
             //   HINT: you may use `Join` to wait until created Thread finishes
             // * In a loop, check whether `token` is not cancelled
             // * If an `action` throws and exception (or token has been cancelled) - `errorAction` should be invoked (if provided)
+            var thread = new Thread(() =>
+            {
+                for (int i = 0; i < repeats; i++)
+                {
+                    try
+                    {
+                        token.ThrowIfCancellationRequested();
+                        
+                        action.Invoke();
+                    }
+                    catch(Exception ex)
+                    {
+                        errorAction?.Invoke(ex);
+                        break;
+                    }
+                }
+            });
 
-
-
+            thread.Start();
+            thread.Join();
         }
 
         public static void ExecuteOnThreadPool(Action action, int repeats, CancellationToken token = default, Action<Exception>? errorAction = null)
@@ -23,8 +40,29 @@ namespace ThreadPoolExercises.Core
             // * In a loop, check whether `token` is not cancelled
             // * If an `action` throws and exception (or token has been cancelled) - `errorAction` should be invoked (if provided)
 
+            var resetEvent = new AutoResetEvent(false);
 
+            ThreadPool.QueueUserWorkItem(state =>
+            {
+                for (int i = 0; i < repeats; i++)
+                {
+                    try
+                    {
+                        token.ThrowIfCancellationRequested();
 
+                        action();
+                    }
+                    catch (Exception ex)
+                    {
+                        errorAction?.Invoke(ex);
+                        break;
+                    }
+                }
+
+                resetEvent.Set();
+            });
+
+            resetEvent.WaitOne();
         }
     }
 }
